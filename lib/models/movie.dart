@@ -5,6 +5,7 @@ class Movie {
   final String overview;
   final List<String> genres;
   final double rating;
+  final int year;
   final List<String> trailers;
 
   const Movie({
@@ -14,6 +15,7 @@ class Movie {
     required this.overview,
     required this.genres,
     required this.rating,
+    required this.year,
     required this.trailers,
   });
 }
