@@ -1,32 +1,23 @@
-import 'product.dart';
-import 'product_repository.dart';
+import 'package:flutter/material.dart';
+import 'screens/task_list_screen.dart';
+import 'repositories/task_repository.dart';
 
-void main() {
-  print("=== INIT PRODUCTS ===");
-  ProductRepository.products.forEach((p) {
-    print("${p.id} - ${p.name} - ${p.price}");
-  });
+void main() => runApp(TasklyApp(repository: TaskRepository()));
 
-  ProductRepository.add(
-    Product(id: 4, name: "Macbook M3", image: "", price: 3000),
-  );
+class TasklyApp extends StatelessWidget {
+  final TaskRepository repository;
+  const TasklyApp({super.key, required this.repository});
 
-  ProductRepository.edit(
-    Product(id: 2, name: "Samsung S24 Ultra", image: "", price: 2200),
-  );
-
-  var found = ProductRepository.find(2);
-  print("\nFOUND:");
-  print("${found?.name} - ${found?.price}");
-
-  print("\nSEARCH 'iphone':");
-  var searchResult = ProductRepository.search("iphone");
-  searchResult.forEach((p) => print(p.name));
-
-  ProductRepository.increasePrice10Percent();
-
-  print("\n=== AFTER INCREASE 10% ===");
-  ProductRepository.products.forEach((p) {
-    print("${p.id} - ${p.name} - ${p.price}");
-  });
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Taskly',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: Colors.deepOrange,
+        useMaterial3: true,
+      ),
+      home: TaskListScreen(repository: repository),
+    );
+  }
 }
