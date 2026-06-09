@@ -1,226 +1,195 @@
 import 'dart:async';
+import 'dart:convert';
 
 // ============================================================
-// LAB 2 – Dart Essentials Practice Lab
+// LAB 3 – Advanced Dart Practice Exercises
 // ============================================================
 
 void main() async {
-  exercise1BasicSyntax();
-  exercise2Collections();
-  exercise3ControlFlow();
-  exercise4OOP();
-  await exercise5AsyncStreams();
+  await exercise1ProductRepository();
+  await exercise2UserRepositoryJson();
+  await exercise3AsyncMicrotask();
+  await exercise4StreamTransformation();
+  exercise5FactoryConstructorCache();
 }
 
 // ============================================================
-// Exercise 1: Basic Syntax & Data Types
+// Exercise 1: Product Model & Repository
 // ============================================================
-void exercise1BasicSyntax() {
-  print('\n=== Exercise 1: Basic Syntax & Data Types ===');
+class Product {
+  final int id;
+  final String name;
+  final double price;
 
-  int age = 21;
-  double gpa = 3.85;
-  String name = 'Alice';
-  bool isEnrolled = true;
-
-  print('Name: $name');
-  print('Age: $age');
-  print('GPA: $gpa');
-  print('Enrolled: $isEnrolled');
-  print('Next year age: ${age + 1}');
-  print('GPA rounded: ${gpa.toStringAsFixed(1)}');
-}
-
-// ============================================================
-// Exercise 2: Collections & Operators
-// ============================================================
-void exercise2Collections() {
-  print('\n=== Exercise 2: Collections & Operators ===');
-
-  // List
-  List<String> fruits = ['apple', 'banana', 'cherry'];
-  fruits.add('date');
-  fruits.remove('banana');
-  print('Fruits: $fruits');
-  print('First fruit: ${fruits[0]}');
-
-  // Set
-  Set<int> numbers = {1, 2, 3, 4, 4, 5};
-  numbers.add(6);
-  print('Set (no duplicates): $numbers');
-
-  // Map
-  Map<String, int> scores = {'math': 90, 'english': 85, 'science': 92};
-  scores['history'] = 88;
-  print('Scores: $scores');
-  print('Math score: ${scores['math']}');
-
-  // Operators
-  int a = 15, b = 4;
-  print('$a + $b = ${a + b}');
-  print('$a % $b = ${a % b}');
-  print('$a > $b: ${a > b}');
-  print('$a == $b: ${a == b}');
-}
-
-// ============================================================
-// Exercise 3: Control Flow & Functions
-// ============================================================
-void exercise3ControlFlow() {
-  print('\n=== Exercise 3: Control Flow & Functions ===');
-
-  // if/else
-  int score = 78;
-  if (score >= 90) {
-    print('Grade: A');
-  } else if (score >= 75) {
-    print('Grade: B');
-  } else {
-    print('Grade: C');
-  }
-
-  // switch
-  int day = 3;
-  switch (day) {
-    case 1:
-      print('Monday');
-      break;
-    case 2:
-      print('Tuesday');
-      break;
-    case 3:
-      print('Wednesday');
-      break;
-    default:
-      print('Other day');
-  }
-
-  // for loop
-  for (int i = 1; i <= 3; i++) {
-    print('Count: $i');
-  }
-
-  // for-in
-  List<String> colors = ['red', 'green', 'blue'];
-  for (var color in colors) {
-    print('Color: $color');
-  }
-
-  // forEach with arrow
-  colors.forEach((c) => print('forEach: $c'));
-
-  // Normal function
-  print('add(10, 20) = ${add(10, 20)}');
-
-  // Arrow function
-  print('square(7) = ${square(7)}');
-}
-
-int add(int x, int y) {
-  return x + y;
-}
-
-int square(int x) => x * x;
-
-// ============================================================
-// Exercise 4: Intro to OOP
-// ============================================================
-class Car {
-  String brand;
-  int year;
-  double fuelLevel;
-
-  Car({required this.brand, required this.year, this.fuelLevel = 1.0});
-
-  void describe() {
-    print('Car: $brand ($year), fuel: ${(fuelLevel * 100).toStringAsFixed(0)}%');
-  }
-
-  void drive() {
-    print('$brand is driving on fuel...');
-  }
-}
-
-class ElectricCar extends Car {
-  double batteryLevel;
-
-  ElectricCar({
-    required super.brand,
-    required super.year,
-    this.batteryLevel = 1.0,
-  }) : super(fuelLevel: 0);
+  Product({required this.id, required this.name, required this.price});
 
   @override
-  void drive() {
-    print(
-      '$brand is driving silently on battery '
-      '(${(batteryLevel * 100).toStringAsFixed(0)}%)...',
-    );
-  }
-
-  void charge() {
-    batteryLevel = 1.0;
-    print('$brand fully charged!');
-  }
+  String toString() => 'Product(id: $id, name: $name, price: \$$price)';
 }
 
-void exercise4OOP() {
-  print('\n=== Exercise 4: Intro to OOP ===');
+class ProductRepository {
+  final StreamController<Product> _controller =
+      StreamController<Product>.broadcast();
 
-  Car myCar = Car(brand: 'Toyota', year: 2022);
-  myCar.describe();
-  myCar.drive();
+  final List<Product> _products = [
+    Product(id: 1, name: 'Laptop', price: 999.99),
+    Product(id: 2, name: 'Mouse', price: 29.99),
+    Product(id: 3, name: 'Keyboard', price: 59.99),
+  ];
 
-  ElectricCar tesla = ElectricCar(
-    brand: 'Tesla Model 3',
-    year: 2024,
-    batteryLevel: 0.3,
+  Future<List<Product>> getAll() async {
+    await Future.delayed(const Duration(milliseconds: 300));
+    return List.unmodifiable(_products);
+  }
+
+  Stream<Product> liveAdded() => _controller.stream;
+
+  void add(Product product) {
+    _products.add(product);
+    _controller.add(product);
+  }
+
+  void dispose() => _controller.close();
+}
+
+Future<void> exercise1ProductRepository() async {
+  print('\n=== Exercise 1: Product Model & Repository ===');
+
+  final repo = ProductRepository();
+
+  // Listen to live stream before adding
+  final subscription = repo.liveAdded().listen(
+    (p) => print('Live added: $p'),
   );
-  tesla.describe();
-  tesla.drive();
-  tesla.charge();
+
+  // Fetch all
+  final all = await repo.getAll();
+  print('All products:');
+  for (var p in all) {
+    print('  $p');
+  }
+
+  // Add a new product (triggers stream)
+  repo.add(Product(id: 4, name: 'Monitor', price: 249.99));
+  await Future.delayed(const Duration(milliseconds: 50));
+
+  subscription.cancel();
+  repo.dispose();
 }
 
 // ============================================================
-// Exercise 5: Async, Future, Null Safety & Streams
+// Exercise 2: User Repository with JSON
 // ============================================================
-Future<String> fetchUsername() async {
-  await Future.delayed(const Duration(seconds: 1));
-  return 'john_doe';
+class User {
+  final String name;
+  final String email;
+
+  User({required this.name, required this.email});
+
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(name: json['name'] as String, email: json['email'] as String);
+  }
+
+  @override
+  String toString() => 'User(name: $name, email: $email)';
 }
 
-Stream<int> countStream(int max) async* {
-  for (int i = 1; i <= max; i++) {
-    await Future.delayed(const Duration(milliseconds: 200));
-    yield i;
+Future<List<User>> fetchUsers() async {
+  await Future.delayed(const Duration(milliseconds: 300));
+  const rawJson = '''
+  [
+    {"name": "Alice Smith", "email": "alice@example.com"},
+    {"name": "Bob Jones",  "email": "bob@example.com"},
+    {"name": "Carol White","email": "carol@example.com"}
+  ]
+  ''';
+  final List<dynamic> data = jsonDecode(rawJson) as List<dynamic>;
+  return data
+      .map((e) => User.fromJson(e as Map<String, dynamic>))
+      .toList();
+}
+
+Future<void> exercise2UserRepositoryJson() async {
+  print('\n=== Exercise 2: User Repository with JSON ===');
+  final users = await fetchUsers();
+  print('Fetched ${users.length} users:');
+  for (var u in users) {
+    print('  $u');
   }
 }
 
-Future<void> exercise5AsyncStreams() async {
-  print('\n=== Exercise 5: Async, Future, Null Safety & Streams ===');
+// ============================================================
+// Exercise 3: Async + Microtask Debugging
+// ============================================================
+Future<void> exercise3AsyncMicrotask() async {
+  print('\n=== Exercise 3: Async + Microtask Debugging ===');
 
-  // async / await
-  print('Fetching username...');
-  String username = await fetchUsername();
-  print('Username: $username');
+  print('1 - synchronous start');
 
-  // Null safety
-  String? maybeNull;
-  print('Nullable value: $maybeNull');
-  print('With ?? operator: ${maybeNull ?? "default_value"}');
+  scheduleMicrotask(() => print('3 - microtask (runs before next event-loop turn)'));
 
-  String definitelyNotNull = maybeNull ?? 'fallback';
-  print('Non-null result: $definitelyNotNull');
+  Future(() => print('5 - Future (event queue, runs after microtasks)'));
 
-  // Stream with listener
-  print('Counting via stream:');
-  final completer = Completer<void>();
-  final stream = countStream(5);
-  stream.listen(
-    (value) => print('Stream value: $value'),
-    onDone: () => completer.complete(),
-  );
-  await completer.future;
+  print('2 - synchronous end');
 
-  print('All exercises complete!');
+  // Yield to let microtask and Future run
+  await Future.delayed(Duration.zero);
+  print('4 - after first await (microtask already ran)');
+
+  await Future.delayed(Duration.zero);
+  print('6 - after second await');
+
+  print('Explanation: scheduleMicrotask() is placed on the microtask queue,');
+  print('which drains completely before any event-queue Future callbacks run.');
+  print('Hence order: sync -> microtask -> event Future.');
+}
+
+// ============================================================
+// Exercise 4: Stream Transformation
+// ============================================================
+Future<void> exercise4StreamTransformation() async {
+  print('\n=== Exercise 4: Stream Transformation ===');
+
+  final source = Stream.fromIterable([1, 2, 3, 4, 5]);
+
+  final transformed = source
+      .map((n) => n * n)        // square each number
+      .where((n) => n % 2 == 0); // keep only even squares
+
+  print('Squared & filtered (evens only):');
+  await for (final value in transformed) {
+    print('  $value');
+  }
+}
+
+// ============================================================
+// Exercise 5: Factory Constructors & Cache (Singleton)
+// ============================================================
+class Settings {
+  static final Settings _instance = Settings._internal();
+
+  String theme = 'light';
+  String language = 'en';
+
+  Settings._internal();
+
+  factory Settings() => _instance;
+}
+
+void exercise5FactoryConstructorCache() {
+  print('\n=== Exercise 5: Factory Constructor & Singleton ===');
+
+  final a = Settings();
+  final b = Settings();
+
+  print('a.theme = ${a.theme}');
+
+  b.theme = 'dark';
+  print('After b.theme = "dark":');
+  print('  a.theme = ${a.theme}');
+  print('  b.theme = ${b.theme}');
+  print('  identical(a, b) = ${identical(a, b)}');
+
+  assert(identical(a, b), 'Settings must be a singleton');
+  print('Singleton verified!');
 }
