@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'screens/browse_screen.dart';
+import 'screens/signup_screen.dart';
 
-void main() => runApp(const MovieBrowseApp());
+void main() => runApp(const SignupApp());
 
-class MovieBrowseApp extends StatelessWidget {
-  const MovieBrowseApp({super.key});
+class SignupApp extends StatelessWidget {
+  const SignupApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lab 6 – Movie Genre Browsing',
+      title: 'Lab 7 – Signup Form',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: Colors.deepPurple,
-        brightness: Brightness.dark,
+        colorSchemeSeed: Colors.teal,
         useMaterial3: true,
       ),
-      home: const BrowseScreen(),
+      home: const SignupScreen(),
     );
   }
 }
