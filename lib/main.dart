@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'screens/weather_screen.dart';
+import 'screens/lab9_home_screen.dart';
 
-void main() => runApp(const WeatherApp());
+void main() => runApp(const Lab9App());
 
-class WeatherApp extends StatelessWidget {
-  const WeatherApp({super.key});
+class Lab9App extends StatelessWidget {
+  const Lab9App({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lab 8B – Weather Companion',
+      title: 'Lab 9 – Local JSON Storage',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorSchemeSeed: Colors.cyan,
-        brightness: Brightness.dark,
+        colorSchemeSeed: Colors.green,
         useMaterial3: true,
       ),
-      home: const WeatherScreen(),
+      home: const Lab9HomeScreen(),
     );
   }
 }
