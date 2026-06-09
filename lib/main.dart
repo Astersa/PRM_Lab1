@@ -1,32 +1,21 @@
-import 'product.dart';
-import 'product_repository.dart';
+import 'package:flutter/material.dart';
+import 'screens/posts_screen.dart';
 
-void main() {
-  print("=== INIT PRODUCTS ===");
-  ProductRepository.products.forEach((p) {
-    print("${p.id} - ${p.name} - ${p.price}");
-  });
+void main() => runApp(const Lab8App());
 
-  ProductRepository.add(
-    Product(id: 4, name: "Macbook M3", image: "", price: 3000),
-  );
+class Lab8App extends StatelessWidget {
+  const Lab8App({super.key});
 
-  ProductRepository.edit(
-    Product(id: 2, name: "Samsung S24 Ultra", image: "", price: 2200),
-  );
-
-  var found = ProductRepository.find(2);
-  print("\nFOUND:");
-  print("${found?.name} - ${found?.price}");
-
-  print("\nSEARCH 'iphone':");
-  var searchResult = ProductRepository.search("iphone");
-  searchResult.forEach((p) => print(p.name));
-
-  ProductRepository.increasePrice10Percent();
-
-  print("\n=== AFTER INCREASE 10% ===");
-  ProductRepository.products.forEach((p) {
-    print("${p.id} - ${p.name} - ${p.price}");
-  });
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Lab 8 – API List',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorSchemeSeed: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const PostsScreen(),
+    );
+  }
 }
