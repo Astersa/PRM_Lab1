@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/task.dart';
-import '../repositories/task_repository.dart';
+import '../providers/task_provider.dart';
+import '../widgets/task_tile.dart';
 import 'task_detail_screen.dart';
 
 class TaskListScreen extends StatefulWidget {
-  final TaskRepository repository;
-  const TaskListScreen({super.key, required this.repository});
+  const TaskListScreen({super.key});
 
   @override
   State<TaskListScreen> createState() => _TaskListScreenState();
@@ -14,39 +15,21 @@ class TaskListScreen extends StatefulWidget {
 class _TaskListScreenState extends State<TaskListScreen> {
   final _textController = TextEditingController();
 
-  void _addTask() {
-    final title = _textController.text.trim();
-    if (title.isEmpty) return;
-    setState(() {
-      widget.repository.addTask(Task(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        title: title,
-      ));
-      _textController.clear();
-    });
-  }
-
-  void _toggleTask(Task task) {
-    setState(() {
-      task.toggle();
-      widget.repository.updateTask(task);
-    });
-  }
-
-  void _deleteTask(String id) {
-    setState(() => widget.repository.deleteTask(id));
-  }
-
   @override
   void dispose() {
     _textController.dispose();
     super.dispose();
   }
 
+  void _addTask() {
+    final title = _textController.text.trim();
+    if (title.isEmpty) return;
+    context.read<TaskProvider>().addTask(title);
+    _textController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final tasks = widget.repository.tasks;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Taskly'),
@@ -54,7 +37,15 @@ class _TaskListScreenState extends State<TaskListScreen> {
       ),
       body: Column(
         children: [
-          // Add task input
+          // 12.2 – Pre-cached banner image
+          Image.asset(
+            'assets/images/task_banner.png',
+            height: 60,
+            width: double.infinity,
+            fit: BoxFit.cover,
+          ),
+
+          // Input row – static widgets marked const
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
@@ -80,51 +71,43 @@ class _TaskListScreenState extends State<TaskListScreen> {
             ),
           ),
 
-          // Task list or empty state
+          // 12.1 – Selector rebuilds only when task list changes
           Expanded(
-            child: tasks.isEmpty
-                ? const Center(
+            child: Selector<TaskProvider, List<Task>>(
+              selector: (_, provider) => provider.tasks,
+              builder: (context, tasks, _) {
+                if (tasks.isEmpty) {
+                  return const Center(
                     child: Text(
                       'No tasks yet. Add one!',
                       style: TextStyle(color: Colors.grey, fontSize: 16),
                     ),
-                  )
-                : ListView.builder(
-                    itemCount: tasks.length,
-                    itemBuilder: (context, index) {
-                      final task = tasks[index];
-                      return ListTile(
-                        key: Key('task_${task.id}'),
-                        leading: Checkbox(
-                          value: task.completed,
-                          onChanged: (_) => _toggleTask(task),
+                  );
+                }
+                return ListView.builder(
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = tasks[index];
+                    return TaskTile(
+                      // 12.1 – ValueKey for stable identity across rebuilds
+                      key: ValueKey(task.id),
+                      task: task,
+                      onToggle: () =>
+                          context.read<TaskProvider>().toggleTask(task),
+                      onDelete: () =>
+                          context.read<TaskProvider>().deleteTask(task.id),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              TaskDetailScreen(taskId: task.id),
                         ),
-                        title: Text(
-                          task.title,
-                          style: TextStyle(
-                            decoration: task.completed
-                                ? TextDecoration.lineThrough
-                                : null,
-                          ),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete_outline,
-                              color: Colors.red),
-                          onPressed: () => _deleteTask(task.id),
-                        ),
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => TaskDetailScreen(
-                              task: task,
-                              repository: widget.repository,
-                              onSaved: () => setState(() {}),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

@@ -1,18 +1,10 @@
 import 'package:flutter/material.dart';
-import '../models/task.dart';
-import '../repositories/task_repository.dart';
+import 'package:provider/provider.dart';
+import '../providers/task_provider.dart';
 
 class TaskDetailScreen extends StatefulWidget {
-  final Task task;
-  final TaskRepository repository;
-  final VoidCallback onSaved;
-
-  const TaskDetailScreen({
-    super.key,
-    required this.task,
-    required this.repository,
-    required this.onSaved,
-  });
+  final String taskId;
+  const TaskDetailScreen({super.key, required this.taskId});
 
   @override
   State<TaskDetailScreen> createState() => _TaskDetailScreenState();
@@ -24,7 +16,9 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.task.title);
+    final task = context.read<TaskProvider>().tasks
+        .firstWhere((t) => t.id == widget.taskId);
+    _titleController = TextEditingController(text: task.title);
   }
 
   @override
@@ -36,9 +30,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   void _save() {
     final newTitle = _titleController.text.trim();
     if (newTitle.isEmpty) return;
-    final updated = widget.task.copyWith(title: newTitle);
-    widget.repository.updateTask(updated);
-    widget.onSaved();
+    context.read<TaskProvider>().updateTaskTitle(widget.taskId, newTitle);
     Navigator.pop(context);
   }
 
@@ -58,19 +50,6 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 labelText: 'Title',
                 border: OutlineInputBorder(),
               ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                const Text('Completed: '),
-                Switch(
-                  value: widget.task.completed,
-                  onChanged: (_) {
-                    setState(() => widget.task.toggle());
-                    widget.repository.updateTask(widget.task);
-                  },
-                ),
-              ],
             ),
             const SizedBox(height: 24),
             FilledButton(

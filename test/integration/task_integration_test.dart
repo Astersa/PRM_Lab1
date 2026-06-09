@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
+import 'package:product_lab1/providers/task_provider.dart';
 import 'package:product_lab1/repositories/task_repository.dart';
 import 'package:product_lab1/screens/task_list_screen.dart';
 
@@ -7,9 +9,11 @@ void main() {
   group('11.4 – Integration: full add → edit → verify flow', () {
     testWidgets('add a task, edit its title, verify updated title in list',
         (tester) async {
-      final repo = TaskRepository();
       await tester.pumpWidget(
-        MaterialApp(home: TaskListScreen(repository: repo)),
+        ChangeNotifierProvider(
+          create: (_) => TaskProvider(TaskRepository()),
+          child: const MaterialApp(home: TaskListScreen()),
+        ),
       );
 
       // Step 1: Add "Original title"
@@ -19,7 +23,7 @@ void main() {
       await tester.pump();
       expect(find.text('Original title'), findsOneWidget);
 
-      // Step 2: Tap the task to open detail
+      // Step 2: Tap to open detail
       await tester.tap(find.text('Original title'));
       await tester.pumpAndSettle();
       expect(find.text('Task Detail'), findsOneWidget);
@@ -32,7 +36,7 @@ void main() {
       await tester.tap(find.byKey(const Key('saveTaskButton')));
       await tester.pumpAndSettle();
 
-      // Step 5: Verify updated title in list
+      // Step 5: Verify
       expect(find.text('Updated title'), findsOneWidget);
       expect(find.text('Original title'), findsNothing);
     });
